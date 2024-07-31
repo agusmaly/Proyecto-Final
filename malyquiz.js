@@ -1,4 +1,6 @@
-// Saludo
+/*
+OMITÍ que el algoritmo "while (true)" es mala práctica, dejo comentado el error y sumo la corrección.
+
 let nombre;
 
 while (true) {
@@ -15,6 +17,29 @@ while (true) {
 
     if (regex.test(nombre)) {
         break;
+    } else {
+        alert("El nombre debe tener al menos 3 letras. Inténtalo de nuevo.");
+    }
+}*/
+
+// Saludo
+let nombre;
+let nombreValido = false;
+
+while (!nombreValido) {
+    nombre = prompt("Hola! ¿Cómo te llamás?");
+
+    // Si el usuario presiona "Cancelar" o deja el nombre vacío, nombre será null o una cadena vacía y no te deja continuar
+    if (nombre === null || nombre.trim() === "") {
+        alert("Tenés que proporcionar un nombre para continuar.");
+        continue;
+    }
+
+    // Valida que el nombre tenga al menos 3 letras
+    const regex = /^[A-Za-z]{3,}$/;
+
+    if (regex.test(nombre)) {
+        nombreValido = true;
     } else {
         alert("El nombre debe tener al menos 3 letras. Inténtalo de nuevo.");
     }
