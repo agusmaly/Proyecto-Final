@@ -6,10 +6,27 @@
     <meta http-equiv="X-UA-Compatible" content="IE-edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MALY QUIZ</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <h1>MALY QUIZ</h1>
+
+    <h1 id="titulo"></h1>
+    <form id="formularioJugador">
+        <label for="nombre">¿Cómo te llamás?</label>
+        <input type="text" id="nombre" required>
+        <label for="edad">¿Cuántos años tenés?</label>
+        <input type="number" id="edad" required>
+        <button type="submit">Comenzar</button>
+    </form>
+    <div id="saludo"></div>
+    <div id="preguntas"></div>
+    <div id="resultado"></div>
+    <div id="intentarDeNuevo"></div>
+    <div id="mejoresJugadores"></div>
+
+
+
     <script src="./malyquiz.js"></script>
 </body>
 
