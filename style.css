@@ -1,10 +1,36 @@
 body {
+    margin: 0px;
+    padding: 0px;
     background-color: black;
     color: white;
     text-align: center;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
 }
 
+header {
+    margin-top: 0px;
+    padding: 5px;
+    background-color: orange;
+}
+
+#formularioJugador {
+    margin-top: 20px;
+    margin-bottom: 15px;
+}
+
+#resultado {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#mejoresJugadores {
+    border: 10px;
+    background-color: orange;
+    display: flex;
+    display: block;
+}
+
+
 h1 {
-    color: orange;
+    color: black;
 }

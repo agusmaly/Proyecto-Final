@@ -1,5 +1,7 @@
+// Variable del titulo
 const valorTitulo = "MALY QUIZ";
 
+// Función que carga el DOM con la variable del título
 function cargarDOM() {
     const titulo = document.getElementById("titulo");
     titulo.innerText = valorTitulo;
@@ -7,6 +9,7 @@ function cargarDOM() {
 
 cargarDOM();
 
+// Clase que representa un jugador
 class Jugador {
     constructor(nombre, edad, intentos, puntaje) {
         this.nombre = nombre;
@@ -16,43 +19,53 @@ class Jugador {
     }
 }
 
+//Recupera datos de jugadores almacenados en el localStorage o inicia con algunos jugadores predeterminados
 let jugadores = JSON.parse(localStorage.getItem('jugadores')) || [
-    new Jugador("Juan", 25, 4, 10),
-    new Jugador("María", 30, 2, 8),
-    new Jugador("Carlos", 22, 3, 6),
+    new Jugador("Messi", 37, 4, 10),
+    new Jugador("Maradona", 63, 2, 8),
+    new Jugador("Sabatini", 54, 3, 6),
     new Jugador("Lucía", 27, 1, 4),
 ];
 
+//Convierte los jugadores recuperados
 jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, jugador.intentos, jugador.puntaje));
 
+// Evento para procesar la información enviada a través del formulario
 document.getElementById("formularioJugador").addEventListener("submit", function (event) {
-    event.preventDefault();
+    event.preventDefault(); // Evita que el formulario de envíe de manera tradicional
 
-    const nombre = document.getElementById("nombre").value.trim();
-    const edad = parseInt(document.getElementById("edad").value);
+    const nombre = document.getElementById("nombre").value.trim(); // Obtiene el nombre
+    const edad = document.getElementById("edad").value.trim(); // Obtiene la edad
 
+    // Verifica que el nombre cumpla con el patrón: al menos 3 letras y que solo contenga caracteres alfabético, si la validación falla arroja error (ID "saludo") y detiene la función
     if (!/^[A-Za-z]{3,}$/.test(nombre)) {
         document.getElementById("saludo").innerText = "El nombre debe tener al menos 3 letras. Inténtalo de nuevo.";
         return;
     }
 
-    if (isNaN(edad) || edad <= 0) {
-        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida.";
+    // Verifica que la edad sea mayor a 0 y que sea un N° entero, también arroja error y detiene la función
+    if (isNaN(edad) || !Number.isInteger(parseFloat(edad)) || parseInt(edad) <= 0) {
+        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida. Debe ser un número entero positivo.";
         return;
     }
 
+    // Mensaje de Bienvenida 
     document.getElementById("saludo").innerText = `Hola ${nombre}😊, bienvenido/a al cuestionario!`;
-    iniciarQuiz(nombre, edad);
+    iniciarQuiz(nombre, edad); // Llama a la función iniciarQuiz
 });
 
+// Función que inicia el cuestionario
 function iniciarQuiz(nombre, edad) {
-    let intentos = 0;
-    let puntaje;
+    let intentos = 0;  // Inicia los intentos en 0
+    let puntaje; // Variable que almacenará el puntaje obtenido
 
+    // Función que maneja el cuestionario
     const quiz = () => {
-        intentos++;
-        puntaje = 0;
-        let preguntasIncorrectas = [];
+        intentos++; // Incrementa los intentos en cada intento
+        puntaje = 0; // Inicia el puntaje en 0
+        let preguntasIncorrectas = []; // Array que almacena ls preguntas incorrectas
+
+        // Array de las preguntas y sus respuestas 
         const preguntas = [
             { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
             { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 6 },
@@ -61,72 +74,82 @@ function iniciarQuiz(nombre, edad) {
             { pregunta: "¿Cuántas Copas del Mundo tiene Argentina?", respuestaCorrecta: 3 },
         ];
 
-        const preguntasContainer = document.getElementById("preguntas");
-        preguntasContainer.innerHTML = "";
+        const preguntasContainer = document.getElementById("preguntas"); // Obtiene el div de las preguntas
+        preguntasContainer.innerHTML = ""; // Limpia contenido previo
 
+        // Crea input para cada pregunta
         preguntas.forEach((pregunta, index) => {
             const div = document.createElement("div");
             div.innerHTML = `
                 <p>${pregunta.pregunta}</p>
                 <input type="number" id="respuesta${index}">
             `;
-            preguntasContainer.appendChild(div);
+            preguntasContainer.appendChild(div); // Agrega el div(hijo) al div de preguntas
         });
 
+        // Crea botón para enviar las respuestas
         const submitButton = document.createElement("button");
-        submitButton.innerText = "Enviar Respuestas";
+        submitButton.innerText = "Enviar Respuestas"; // Texto del botón
         submitButton.addEventListener("click", function () {
+            // Verifica respuesta usuario
             preguntas.forEach((pregunta, index) => {
-                const respuestaUsuario = Number(document.getElementById(`respuesta${index}`).value);
+                const respuestaUsuario = Number(document.getElementById(`respuesta${index}`).value); // Convierte la respuesta a número
                 if (respuestaUsuario === pregunta.respuestaCorrecta) {
-                    puntaje += 2;
+                    puntaje += 2; // Incrementa 2 puntos si la pregunta es correcta
                 } else {
-                    preguntasIncorrectas.push(pregunta.pregunta);
+                    preguntasIncorrectas.push(pregunta.pregunta); // Almacena la pregunta si la respuesta es incorrecta
                 }
             });
 
+            // Muestra los resultados al usuario
             mostrarResultados(puntaje, preguntasIncorrectas);
         });
 
-        preguntasContainer.appendChild(submitButton);
+        preguntasContainer.appendChild(submitButton); // Agrega el botón al div de preguntas 
     };
 
+    // Función que muestra los resultados del cuestionario
     const mostrarResultados = (puntaje, preguntasIncorrectas) => {
-        let resultado = `Tu puntaje final es: ${puntaje}/10\n`;
+        let resultado = `Tu puntaje final es: ${puntaje}/10\n`; // Muestra el puntaje obtenido
 
+        // Verifica si hubo preguntas incorrectas y muestra cuáles
         if (preguntasIncorrectas.length > 0) {
             resultado += "Ups!😵Respondiste incorrectamente algunas preguntas:\n";
             preguntasIncorrectas.forEach(pregunta => {
-                resultado += `- ${pregunta}\n`;
+                resultado += `- ${pregunta}\n`; // Lista de preguntas incorrectas
             });
         } else {
             resultado += "¡Excelente!😃😃😃Respondiste todas las preguntas correctamente.";
         }
 
-        document.getElementById("resultado").innerText = resultado;
+        document.getElementById("resultado").innerText = resultado; // Muestra el resultado en el DOM
 
         const intentarDeNuevoContainer = document.getElementById("intentarDeNuevo");
         intentarDeNuevoContainer.innerHTML = ""; // Limpiar cualquier contenido previo
 
+        // Crea un nuevo jugador con los datos ingresados
         const nuevoJugador = new Jugador(nombre, edad, intentos, puntaje);
-        jugadores.push(nuevoJugador);
-        localStorage.setItem('jugadores', JSON.stringify(jugadores));
+        jugadores.push(nuevoJugador); // Agrega el nuevo jugador al Array de jugadores
+        localStorage.setItem('jugadores', JSON.stringify(jugadores)); // Guarda los jugadoes en localStorage
 
+        // Si el puntaje es menor a 10 te da la opción (botón) de intentar de nuevo
         if (puntaje < 10) {
             const retryButton = document.createElement("button");
-            retryButton.innerText = "Intentar de Nuevo";
-            retryButton.addEventListener("click", quiz);
+            retryButton.innerText = "Intentar de Nuevo"; // Botón intentar de nuevo
+            retryButton.addEventListener("click", quiz); // Asigna la función quiz al botón
 
-            intentarDeNuevoContainer.appendChild(retryButton);
+            intentarDeNuevoContainer.appendChild(retryButton); // Agrega el botón al contenedor
         }
 
-        mostrarJugadoresOrdenados();
+        mostrarJugadoresOrdenados(); // Muestra lista mejores jugadores
     };
 
-    quiz();
+    quiz(); // Llama la función quiz para iniciar el cuestionario
 }
 
+// Función que muestra el top 10 por puntaje e intentos
 function mostrarJugadoresOrdenados() {
+    // Si el jugador obtiene menos de 4 puntos, le regala 2
     jugadores = jugadores.map(jugador => {
         if (jugador.puntaje < 4) {
             jugador.puntaje += 2;
@@ -134,11 +157,12 @@ function mostrarJugadoresOrdenados() {
         return jugador;
     });
 
+    // Ordena los jugadores primero por mayor puntaje, luego por menor intentos
     jugadores.sort((a, b) => {
         if (b.puntaje === a.puntaje) {
-            return a.intentos - b.intentos;
+            return a.intentos - b.intentos; // Ordena por menor cantidad de intentos si el puntaje es igual
         }
-        return b.puntaje - a.puntaje;
+        return b.puntaje - a.puntaje; // Ordena por mayor puntaje primero
     });
 
     const top10Jugadores = jugadores.slice(0, 10); // Obtener los 10 mejores jugadores
@@ -157,459 +181,6 @@ function mostrarJugadoresOrdenados() {
 
 
 
-/*
-const valorTitulo = "MALY QUIZ";
-
-function cargarDOM() {
-    const titulo = document.getElementById("titulo");
-    titulo.innerText = valorTitulo;
-}
-
-cargarDOM();
-
-class Jugador {
-    constructor(nombre, edad, intentos, puntaje) {
-        this.nombre = nombre;
-        this.edad = edad;
-        this.intentos = intentos;
-        this.puntaje = puntaje;
-    }
-}
-
-let jugadores = JSON.parse(localStorage.getItem('jugadores')) || [
-    new Jugador("Juan", 25, 4, 10),
-    new Jugador("María", 30, 2, 8),
-    new Jugador("Carlos", 22, 3, 6),
-    new Jugador("Lucía", 27, 1, 4),
-];
-
-jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, jugador.intentos, jugador.puntaje));
-
-document.getElementById("formularioJugador").addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const nombre = document.getElementById("nombre").value.trim();
-    const edad = parseInt(document.getElementById("edad").value);
-
-    if (!/^[A-Za-z]{3,}$/.test(nombre)) {
-        document.getElementById("saludo").innerText = "El nombre debe tener al menos 3 letras. Inténtalo de nuevo.";
-        return;
-    }
-
-    if (isNaN(edad) || edad <= 0) {
-        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida.";
-        return;
-    }
-
-    document.getElementById("saludo").innerText = `Hola ${nombre}😊, bienvenido/a al cuestionario!`;
-    iniciarQuiz(nombre, edad);
-});
-
-function iniciarQuiz(nombre, edad) {
-    let intentos = 0;
-    let puntaje;
-
-    const quiz = () => {
-        intentos++;
-        puntaje = 0;
-        let preguntasIncorrectas = [];
-        const preguntas = [
-            { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
-            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 6 },
-            { pregunta: "¿Cuántos lados tiene un hexágono??", respuestaCorrecta: 6 },
-            { pregunta: "¿Cuánto es 7 * 7?", respuestaCorrecta: 49 },
-            { pregunta: "¿Cuáles son los colores secundarios?", respuestaCorrecta: 2 },
-        ];
-
-        const preguntasContainer = document.getElementById("preguntas");
-        preguntasContainer.innerHTML = "";
-
-        preguntas.forEach((pregunta, index) => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <p>${pregunta.pregunta}</p>
-                <input type="number" id="respuesta${index}">
-            `;
-            preguntasContainer.appendChild(div);
-        });
-
-        const submitButton = document.createElement("button");
-        submitButton.innerText = "Enviar Respuestas";
-        submitButton.addEventListener("click", function () {
-            preguntas.forEach((pregunta, index) => {
-                const respuestaUsuario = Number(document.getElementById(`respuesta${index}`).value);
-                if (respuestaUsuario === pregunta.respuestaCorrecta) {
-                    puntaje += 2;
-                } else {
-                    preguntasIncorrectas.push(pregunta.pregunta);
-                }
-            });
-
-            mostrarResultados(puntaje, preguntasIncorrectas);
-        });
-
-        preguntasContainer.appendChild(submitButton);
-    };
-
-    const mostrarResultados = (puntaje, preguntasIncorrectas) => {
-        let resultado = `Tu puntaje final es: ${puntaje}/10\n`;
-
-        if (preguntasIncorrectas.length > 0) {
-            resultado += "Ups!😵Respondiste incorrectamente algunas preguntas:\n";
-            preguntasIncorrectas.forEach(pregunta => {
-                resultado += `- ${pregunta}\n`;
-            });
-        } else {
-            resultado += "¡Excelente!😃😃😃Respondiste todas las preguntas correctamente.";
-        }
-
-        document.getElementById("resultado").innerText = resultado;
-
-        const intentarDeNuevoContainer = document.getElementById("intentarDeNuevo");
-        intentarDeNuevoContainer.innerHTML = ""; // Limpiar cualquier contenido previo
-
-        if (puntaje < 10) {
-            const retryButton = document.createElement("button");
-            retryButton.innerText = "Intentar de Nuevo";
-            retryButton.addEventListener("click", quiz);
-
-            intentarDeNuevoContainer.appendChild(retryButton);
-        } else {
-            const nuevoJugador = new Jugador(nombre, edad, intentos, puntaje);
-            jugadores.push(nuevoJugador);
-            localStorage.setItem('jugadores', JSON.stringify(jugadores));
-            mostrarJugadoresOrdenados();
-        }
-    };
-
-    quiz();
-}
-
-function mostrarJugadoresOrdenados() {
-    jugadores = jugadores.map(jugador => {
-        if (jugador.puntaje < 4) {
-            jugador.puntaje += 2;
-        }
-        return jugador;
-    });
-
-    jugadores.sort((a, b) => {
-        if (b.puntaje === a.puntaje) {
-            return a.intentos - b.intentos;
-        }
-        return b.puntaje - a.puntaje;
-    });
-
-    console.log("Jugadores ordenados:", jugadores);
-}
-*/
-
-
-
-
-
-
-
-
-
-
-/*
-const valorTitulo = "MALY QUIZ";
-
-function cargarDOM() {
-    const titulo = document.getElementById("titulo");
-    titulo.innerText = valorTitulo;
-}
-
-cargarDOM();
-
-class Jugador {
-    constructor(nombre, edad, intentos, puntaje) {
-        this.nombre = nombre;
-        this.edad = edad;
-        this.intentos = intentos;
-        this.puntaje = puntaje;
-    }
-}
-
-let jugadores = JSON.parse(localStorage.getItem('jugadores')) || [
-    new Jugador("Juan", 25, 4, 10),
-    new Jugador("María", 30, 2, 8),
-    new Jugador("Carlos", 22, 3, 6),
-    new Jugador("Lucía", 27, 1, 4),
-];
-
-jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, jugador.intentos, jugador.puntaje));
-
-document.getElementById("formularioJugador").addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const nombre = document.getElementById("nombre").value.trim();
-    const edad = parseInt(document.getElementById("edad").value);
-
-    if (!/^[A-Za-z]{3,}$/.test(nombre)) {
-        document.getElementById("saludo").innerText = "El nombre debe tener al menos 3 letras. Inténtalo de nuevo.";
-        return;
-    }
-
-    if (isNaN(edad) || edad <= 0) {
-        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida.";
-        return;
-    }
-
-    document.getElementById("saludo").innerText = `Hola ${nombre}😊, bienvenido/a al cuestionario!`;
-    iniciarQuiz(nombre, edad);
-});
-
-function iniciarQuiz(nombre, edad) {
-    let intentos = 0;
-    let puntaje;
-    let intentarDeNuevo;
-
-    const quiz = () => {
-        intentos++;
-        puntaje = 0;
-        let preguntasIncorrectas = [];
-        const preguntas = [
-            { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
-            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 6 },
-            { pregunta: "Un hexágono tiene 6 lados", respuestaCorrecta: 1 },
-            { pregunta: "¿Cuánto es 7 * 7?", respuestaCorrecta: 49 },
-            { pregunta: "¿Cuáles son los colores secundarios?", respuestaCorrecta: 2 },
-        ];
-
-        const preguntasContainer = document.getElementById("preguntas");
-        preguntasContainer.innerHTML = "";
-
-        preguntas.forEach((pregunta, index) => {
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <p>${pregunta.pregunta}</p>
-                <input type="number" id="respuesta${index}">
-            `;
-            preguntasContainer.appendChild(div);
-        });
-
-        const submitButton = document.createElement("button");
-        submitButton.innerText = "Enviar Respuestas";
-        submitButton.addEventListener("click", function () {
-            preguntas.forEach((pregunta, index) => {
-                const respuestaUsuario = Number(document.getElementById(`respuesta${index}`).value);
-                if (respuestaUsuario === pregunta.respuestaCorrecta) {
-                    puntaje += 2;
-                } else {
-                    preguntasIncorrectas.push(pregunta.pregunta);
-                }
-            });
-
-            mostrarResultados(puntaje, preguntasIncorrectas);
-        });
-
-        preguntasContainer.appendChild(submitButton);
-    };
-
-    const mostrarResultados = (puntaje, preguntasIncorrectas) => {
-        let resultado = `Tu puntaje final es: ${puntaje}/10\n`;
-
-        if (preguntasIncorrectas.length > 0) {
-            resultado += "Ups!😵Respondiste incorrectamente algunas preguntas:\n";
-            preguntasIncorrectas.forEach(pregunta => {
-                resultado += `- ${pregunta}\n`;
-            });
-        } else {
-            resultado += "¡Excelente!😃😃😃Respondiste todas las preguntas correctamente.";
-        }
-
-        document.getElementById("resultado").innerText = resultado;
-
-        if (puntaje < 10) {
-            intentarDeNuevo = confirm("Tu puntaje es menor a 10 🥲 ¿Quieres intentarlo de nuevo?");
-            if (intentarDeNuevo) {
-                quiz();
-            }
-        } else {
-            const nuevoJugador = new Jugador(nombre, edad, intentos, puntaje);
-            jugadores.push(nuevoJugador);
-            localStorage.setItem('jugadores', JSON.stringify(jugadores));
-            mostrarJugadoresOrdenados();
-        }
-    };
-
-    quiz();
-}
-
-function mostrarJugadoresOrdenados() {
-    jugadores = jugadores.map(jugador => {
-        if (jugador.puntaje < 4) {
-            jugador.puntaje += 2;
-        }
-        return jugador;
-    });
-
-    jugadores.sort((a, b) => {
-        if (b.puntaje === a.puntaje) {
-            return a.intentos - b.intentos;
-        }
-        return b.puntaje - a.puntaje;
-    });
-
-    console.log("Jugadores ordenados:", jugadores);
-}
-*/
-
-
-
-
-/*
-const valorTitulo = "MALY QUIZ"
-
-function cargarDOM() {
-    const titulo = document.getElementById("titulo")
-    titulo.innerText = valorTitulo
-}
-
-cargarDOM()
-
-// Clase Jugador
-class Jugador {
-    constructor(nombre, edad, intentos, puntaje) {
-        this.nombre = nombre;
-        this.edad = edad;
-        this.intentos = intentos;
-        this.puntaje = puntaje;
-    }
-}
-
-// Recuperar los datos de localStorage o inicializar con valores predeterminados
-let jugadores = JSON.parse(localStorage.getItem('jugadores')) || [
-    new Jugador("Juan", 25, 4, 10),
-    new Jugador("María", 30, 2, 8),
-    new Jugador("Carlos", 22, 3, 6),
-    new Jugador("Lucía", 27, 1, 4),
-];
-
-// Convertir los objetos recuperados a instancias de Jugador
-jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, jugador.intentos, jugador.puntaje));
-
-let nombre;
-let edad;
-
-// Pide el nombre del jugador
-let nombreValido = false;
-while (!nombreValido) {
-    nombre = prompt("Hola! ¿Cómo te llamás?");
-    if (nombre === null || nombre.trim() === "") {
-        alert("Tenés que proporcionar un nombre para continuar.");
-        continue;
-    }
-
-    const regex = /^[A-Za-z]{3,}$/;
-    if (regex.test(nombre)) {
-        nombreValido = true;
-    } else {
-        alert("El nombre debe tener al menos 3 letras. Inténtalo de nuevo.");
-    }
-}
-
-// Pide la edad del jugador
-let edadValida = false;
-while (!edadValida) {
-    edad = parseInt(prompt("¿Cuántos años tenés?"));
-    if (isNaN(edad) || edad <= 0) {
-        alert("Por favor, ingresá una edad válida.");
-    } else {
-        edadValida = true;
-    }
-}
-
-// Alerta Saludo
-alert(`Hola ${nombre}😊, bienvenido/a al cuestionario!`);
-
-let intentos = 0;  // Variable para contar los intentos
-
-const quiz = () => {
-    let puntaje;
-    let intentarDeNuevo;
-
-    do {
-        intentos++;  // Incrementa los intentos cada vez que el jugador repite el cuestionario
-        alert("¡Empecemos!");
-        puntaje = 0;
-        let preguntasIncorrectas = [];
-
-        const verificarRespuesta = (pregunta, respuestaCorrecta, respuestaUsuario) => {
-            if (respuestaUsuario === respuestaCorrecta) {
-                puntaje += 2;
-                console.log("Respuesta correcta!");
-            } else {
-                preguntasIncorrectas.push(pregunta);
-                console.log("Respuesta incorrecta.");
-            }
-        };
-
-        const preguntas = [
-            { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
-            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 6 },
-            { pregunta: "Un hexágono tiene 6 lados\n1-Verdadero\n2-Falso", respuestaCorrecta: 1 },
-            { pregunta: "¿Cuánto es 7 * 7?", respuestaCorrecta: 49 },
-            { pregunta: "¿Cuáles son los colores secundarios?\n1-Rojo, Amarillo y Azul\n2-Naranja, Violeta y Verde\n3-Violeta, Rojo y Azul\n4-Naranja, Amarillo y Verde", respuestaCorrecta: 2 },
-        ];
-
-        for (const pregunta of preguntas) {
-            const respuestaUsuario = Number(prompt(pregunta.pregunta));
-            verificarRespuesta(pregunta.pregunta, pregunta.respuestaCorrecta, respuestaUsuario);
-        }
-
-        if (preguntasIncorrectas.length > 0) {
-            let mensaje = "Ups!😵Respondiste incorrectamente algunas preguntas:\n";
-            for (const pregunta of preguntasIncorrectas) {
-                mensaje += `- ${pregunta}\n`;
-            }
-            alert(mensaje);
-        } else {
-            alert("¡Excelente!😃😃😃Respondiste todas las preguntas correctamente.");
-        }
-
-        alert(`Tu puntaje final es: ${puntaje}/10`);
-
-        if (puntaje < 10) {
-            intentarDeNuevo = confirm("Tu puntaje es menor a 10 🥲 ¿Quieres intentarlo de nuevo?");
-        } else {
-            intentarDeNuevo = false;
-        }
-
-    } while (intentarDeNuevo);
-
-    const nuevoJugador = new Jugador(nombre, edad, intentos, puntaje);
-    jugadores.push(nuevoJugador);
-    console.log(jugadores);
-
-    // Guardar los jugadores actualizados en localStorage
-    localStorage.setItem('jugadores', JSON.stringify(jugadores));
-
-    // Método map para aplicar 2 puntos extra a jugadores con menos de 4 puntos
-    jugadores = jugadores.map(jugador => {
-        if (jugador.puntaje < 4) {
-            jugador.puntaje += 2;
-        }
-        return jugador;
-    });
-
-    // Ordena jugadores: primero por mayor puntaje, luego por menor intentos
-    jugadores.sort((a, b) => {
-        if (b.puntaje === a.puntaje) {
-            return a.intentos - b.intentos; // Menor cantidad de intentos ubica primero al jugador si el puntaje es igual
-        }
-        return b.puntaje - a.puntaje; // Mayor puntaje primero
-    });
-
-    console.log("Jugadores ordenados:", jugadores);
-};
-
-quiz(); // Ejecuta el cuestionario
-
-
-*/
 
 
 
