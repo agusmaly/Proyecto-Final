@@ -27,32 +27,34 @@ let jugadores = JSON.parse(localStorage.getItem('jugadores')) || [
     new Jugador("Lucía", 27, 1, 4),
 ];
 
-//Convierte los jugadores recuperados
+//Convierte los jugadores recuperados en instancias de Jugador
 jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, jugador.intentos, jugador.puntaje));
 
-// Evento para procesar la información enviada a través del formulario
-document.getElementById("formularioJugador").addEventListener("submit", function (event) {
-    event.preventDefault(); // Evita que el formulario de envíe de manera tradicional
+// Función que muestra el top 10 por puntaje e intentos
+function mostrarJugadoresOrdenados() {
+    // Genera una copia del array de jugadores para trabajar sin modificar el original
+    const jugadoresAjustados = jugadores.map(jugador => {
+        let puntajeAjustado = jugador.puntaje < 4 ? jugador.puntaje + 2 : jugador.puntaje;
+        return { ...jugador, puntaje: puntajeAjustado };
+    });
 
-    const nombre = document.getElementById("nombre").value.trim(); // Obtiene el nombre
-    const edad = document.getElementById("edad").value.trim(); // Obtiene la edad
+    // Ordena los jugadores ajustados por puntaje y luego por intentos
+    jugadoresAjustados.sort((a, b) => {
+        if (b.puntaje === a.puntaje) {
+            return a.intentos - b.intentos; // Ordena por menor cantidad de intentos si el puntaje es igual
+        }
+        return b.puntaje - a.puntaje; // Ordena por mayor puntaje primero
+    });
 
-    // Verifica que el nombre cumpla con el patrón: al menos 3 letras y que solo contenga caracteres alfabético, si la validación falla arroja error (ID "saludo") y detiene la función
-    if (!/^[A-Za-z]{3,}$/.test(nombre)) {
-        document.getElementById("saludo").innerText = "El nombre debe tener al menos 3 letras. Inténtalo de nuevo.";
-        return;
-    }
+    const top10Jugadores = jugadoresAjustados.slice(0, 10); // Obtener los 10 mejores jugadores
 
-    // Verifica que la edad sea mayor a 0 y que sea un N° entero, también arroja error y detiene la función
-    if (isNaN(edad) || !Number.isInteger(parseFloat(edad)) || parseInt(edad) <= 0) {
-        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida. Debe ser un número entero positivo.";
-        return;
-    }
+    let listaJugadores = "Top 10 Jugadores:\n";
+    top10Jugadores.forEach((jugador, index) => {
+        listaJugadores += `${index + 1}. ${jugador.nombre} - Puntaje: ${jugador.puntaje}, Intentos: ${jugador.intentos}\n`;
+    });
 
-    // Mensaje de Bienvenida 
-    document.getElementById("saludo").innerText = `Hola ${nombre}😊, bienvenido/a al cuestionario!`;
-    iniciarQuiz(nombre, edad); // Llama a la función iniciarQuiz
-});
+    document.getElementById("mejoresJugadores").innerText = listaJugadores; // Mostrar la lista en el DOM
+}
 
 // Función que inicia el cuestionario
 function iniciarQuiz(nombre, edad) {
@@ -68,7 +70,7 @@ function iniciarQuiz(nombre, edad) {
         // Array de las preguntas y sus respuestas 
         const preguntas = [
             { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
-            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 6 },
+            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 4 },
             { pregunta: "¿Cuántos lados tiene un hexágono?", respuestaCorrecta: 6 },
             { pregunta: "¿Cuánto es 7 * 7?", respuestaCorrecta: 49 },
             { pregunta: "¿Cuántas Copas del Mundo tiene Argentina?", respuestaCorrecta: 3 },
@@ -144,39 +146,32 @@ function iniciarQuiz(nombre, edad) {
         mostrarJugadoresOrdenados(); // Muestra lista mejores jugadores
     };
 
-    quiz(); // Llama la función quiz para iniciar el cuestionario
+    quiz(); // Llama la función que maneja el cuestionario
 }
 
-// Función que muestra el top 10 por puntaje e intentos
-function mostrarJugadoresOrdenados() {
-    // Si el jugador obtiene menos de 4 puntos, le regala 2
-    jugadores = jugadores.map(jugador => {
-        if (jugador.puntaje < 4) {
-            jugador.puntaje += 2;
-        }
-        return jugador;
-    });
+// Evento para procesar la información enviada a través del formulario
+document.getElementById("formularioJugador").addEventListener("submit", function (event) {
+    event.preventDefault(); // Evita que el formulario de envíe de manera tradicional
 
-    // Ordena los jugadores primero por mayor puntaje, luego por menor intentos
-    jugadores.sort((a, b) => {
-        if (b.puntaje === a.puntaje) {
-            return a.intentos - b.intentos; // Ordena por menor cantidad de intentos si el puntaje es igual
-        }
-        return b.puntaje - a.puntaje; // Ordena por mayor puntaje primero
-    });
+    const nombre = document.getElementById("nombre").value.trim(); // Obtiene el nombre
+    const edad = parseInt(document.getElementById("edad").value.trim(), 10); // Convierte la edad a número
 
-    const top10Jugadores = jugadores.slice(0, 10); // Obtener los 10 mejores jugadores
+    // Verifica que el nombre cumpla con el patrón: al menos 3 letras y que solo contenga caracteres alfabético, si la validación falla arroja error (ID "saludo") y detiene la función
+    if (!/^[A-Za-z]{3,}$/.test(nombre)) {
+        document.getElementById("saludo").innerText = "El nombre debe tener al menos 3 letras. Inténtalo de nuevo.";
+        return;
+    }
 
-    let listaJugadores = "Top 10 Jugadores:\n";
-    top10Jugadores.forEach((jugador, index) => {
-        listaJugadores += `${index + 1}. ${jugador.nombre} - Puntaje: ${jugador.puntaje}, Intentos: ${jugador.intentos}\n`;
-    });
+    // Verifica que la edad sea mayor a 0 y que sea un N° entero, también arroja error y detiene la función
+    if (isNaN(edad) || edad <= 0) {
+        document.getElementById("saludo").innerText = "Por favor, ingresá una edad válida. Debe ser un número entero positivo.";
+        return;
+    }
 
-    document.getElementById("mejoresJugadores").innerText = listaJugadores; // Mostrar la lista en el DOM
-}
-
-
-
+    // Mensaje de Bienvenida 
+    document.getElementById("saludo").innerText = `Hola ${nombre}😊, bienvenido/a al cuestionario!`;
+    iniciarQuiz(nombre, edad); // Llama a la función iniciarQuiz
+});
 
 
 
