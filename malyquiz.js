@@ -33,7 +33,7 @@ jugadores = jugadores.map(jugador => new Jugador(jugador.nombre, jugador.edad, j
 // Función que muestra el top 10 por puntaje e intentos
 function mostrarJugadoresOrdenados() {
     const jugadoresAjustados = jugadores.map(jugador => {
-        return { ...jugador }; // Elimina los 2 puntos de regalo
+        return { ...jugador };
     });
 
     // Ordena los jugadores ajustados por puntaje y luego por intentos
