@@ -155,7 +155,7 @@ const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos
 
     // Verifica si hubo preguntas incorrectas y muestra cuáles
     if (preguntasIncorrectas.length > 0) {
-        resultado += "Ups!😵 Respondiste incorrectamente algunas preguntas:\n";
+        resultado += "Respondiste incorrectamente algunas preguntas:\n";
         preguntasIncorrectas.forEach(pregunta => {
             resultado += `- ${pregunta}\n`; // Lista de preguntas incorrectas
         });
@@ -170,7 +170,7 @@ const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos
         // Mostrar la información del personaje en el DOM
         if (personaje) {
             const personajeInfo = `
-                ¡Felicitaciones! Si fueras un personaje de Rick & Morty, serías ${personaje.name}.
+                Si fueras un personaje de Rick & Morty, serías ${personaje.name}.
                 <img src="${personaje.image}" alt="${personaje.name}">
             `;
             document.getElementById("personaje").innerHTML = personajeInfo; // Muestra la info del personaje
@@ -206,18 +206,55 @@ const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos
 };
 
 
-// Evento para procesar la información enviada a través del formulario
+/// Evento para procesar la información enviada a través del formulario
 document.getElementById("formularioJugador").addEventListener("submit", function (event) {
     event.preventDefault(); // Evita que el formulario de envíe de manera tradicional
 
     const nombre = document.getElementById("nombre").value.trim(); // Obtiene el nombre
     const edad = parseInt(document.getElementById("edad").value.trim(), 10); // Convierte la edad a número
 
-    // Verifica que la edad sea mayor a 0 y que sea un número entero
-    if (!Number.isInteger(edad) || edad <= 0) {
-        alert("Por favor, ingrese una edad válida.");
+    // Verifica que el nombre tenga al menos 3 letras
+    if (nombre.length < 3) {
+        Swal.fire({
+            imageUrl: 'assets/images.jpeg',
+            imageWidth: 300,
+            imageHeight: 300,
+            title: "nope",
+            text: "Tu nombre debe tener al menos 3 letras.",
+            background: '#000000',
+            color: '#FFFFFF',
+            confirmButtonColor: '#FFA500',
+        });
         return;
     }
 
-    iniciarQuiz(nombre, edad); // Inicia el cuestionario con los datos ingresados
+    // Verifica que la edad sea mayor a 0 y que sea un número entero
+    if (isNaN(edad) || edad <= 0) {
+        Swal.fire({
+            imageUrl: 'assets/michaelScott.jpg',
+            imageWidth: 300,
+            imageHeight: 300,
+            title: "upsis",
+            text: "Ingresá una edad válida. Debe ser un número entero positivo.",
+            background: '#000000',
+            color: '#FFFFFF',
+            confirmButtonColor: '#FFA500',
+        });
+        return;
+    }
+
+    Swal.fire({
+        imageUrl: 'assets/diego.jpg',
+        imageWidth: 300,
+        imageHeight: 300,
+        title: `¡Bienvenido/a ${nombre}!`,
+        text: "Estás listo/a para comenzar el cuestionario?",
+        background: '#000000',
+        color: '#FFFFFF',
+        confirmButtonColor: '#FFA500',
+    }).then(() => {
+        iniciarQuiz(nombre, edad); // Llama a la función iniciarQuiz después de la bienvenida
+    });
 });
+
+
