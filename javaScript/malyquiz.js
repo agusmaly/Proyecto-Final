@@ -89,24 +89,23 @@ function obtenerPersonaje(puntaje) {
         });
 }
 
-// Función que inicia el cuestionario
 function iniciarQuiz(nombre, edad) {
     let jugadorExistente = jugadores.find(jugador => jugador.nombre === nombre && jugador.edad === edad);
 
     // Si el jugador existe, utilizamos sus intentos actuales
     let intentos = jugadorExistente ? jugadorExistente.intentos : 0;
-    let puntaje; // Variable que almacenará el puntaje obtenido
 
     // Función que maneja el cuestionario
     const quiz = () => {
         intentos++; // Incrementa los intentos en cada intento
-        puntaje = 0; // Inicia el puntaje en 0
+        let puntaje = 0; // Reinicia el puntaje a 0 al iniciar el cuestionario
+
         let preguntasIncorrectas = []; // Array que almacena las preguntas incorrectas
 
         // Array de las preguntas y sus respuestas 
         const preguntas = [
             { pregunta: "¿Cuántas letras tiene la palabra 'Australopithecus'?", respuestaCorrecta: 16 },
-            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 4 }, //la respuesta era 6. contaba ByN como colores.
+            { pregunta: "¿Cuántos colores tiene la bandera de Sudáfrica?", respuestaCorrecta: 4 }, //la respuesta era 6, no tenía en cuenta que ByN eran valores
             { pregunta: "¿Cuántos lados tiene un hexágono?", respuestaCorrecta: 6 },
             { pregunta: "¿Cuánto es 7 * 7?", respuestaCorrecta: 49 },
             { pregunta: "¿Cuántas Copas del Mundo tiene Argentina?", respuestaCorrecta: 3 },
@@ -125,10 +124,17 @@ function iniciarQuiz(nombre, edad) {
             preguntasContainer.appendChild(div); // Agrega el div(hijo) al div de preguntas
         });
 
-        // Crea botón para enviar las respuestas
+        // Elimina cualquier listener anterior antes de agregar uno nuevo
         const submitButton = document.createElement("button");
         submitButton.innerText = "Enviar Respuestas"; // Texto del botón
-        submitButton.addEventListener("click", function () {
+        submitButton.removeEventListener("click", enviarRespuestas); // Asegura que no haya listeners previos
+        submitButton.addEventListener("click", enviarRespuestas); // Agrega el listener
+
+        preguntasContainer.appendChild(submitButton); // Agrega el botón al div de preguntas 
+
+        function enviarRespuestas() {
+            puntaje = 0; // Reinicia el puntaje antes de evaluar las respuestas
+
             // Verifica respuesta usuario
             preguntas.forEach((pregunta, index) => {
                 const respuestaUsuario = Number(document.getElementById(`respuesta${index}`).value); // Convierte la respuesta a número
@@ -141,9 +147,7 @@ function iniciarQuiz(nombre, edad) {
 
             // Muestra los resultados al usuario
             mostrarResultados(puntaje, preguntasIncorrectas, nombre, edad, intentos);
-        });
-
-        preguntasContainer.appendChild(submitButton); // Agrega el botón al div de preguntas 
+        }
     };
 
     quiz(); // Llama la función que maneja el cuestionario
@@ -151,6 +155,15 @@ function iniciarQuiz(nombre, edad) {
 
 // Función que muestra los resultados del cuestionario
 const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos) => {
+    const resultadoContainer = document.getElementById("resultado");
+    const personajeContainer = document.getElementById("personaje");
+    const intentarDeNuevoContainer = document.getElementById("intentarDeNuevo");
+
+    // Limpiar el contenido previo en los contenedores
+    resultadoContainer.innerText = "";
+    personajeContainer.innerHTML = "";
+    intentarDeNuevoContainer.innerHTML = "";
+
     let resultado = `Tu puntaje final es: ${puntaje}/10\n`; // Muestra el puntaje obtenido
 
     // Verifica si hubo preguntas incorrectas y muestra cuáles
@@ -163,7 +176,20 @@ const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos
         resultado += "¡Excelente!😃😃😃 Respondiste todas las preguntas correctamente.\n";
     }
 
-    document.getElementById("resultado").innerText = resultado; // Muestra el resultado en el DOM
+    resultadoContainer.innerText = resultado; // Muestra el resultado en el DOM
+
+    // Actualiza el puntaje e intentos del jugador en el array
+    let jugadorExistente = jugadores.find(jugador => jugador.nombre === nombre && jugador.edad === edad);
+    if (jugadorExistente) {
+        jugadorExistente.puntaje = puntaje;
+        jugadorExistente.intentos = intentos;
+    } else {
+        // Si el jugador no existe, lo agrega al array
+        jugadores.push(new Jugador(nombre, edad, intentos, puntaje));
+    }
+
+    // Guarda el array actualizado en localStorage
+    localStorage.setItem('jugadores', JSON.stringify(jugadores));
 
     // Obtener el personaje de acuerdo con el puntaje
     obtenerPersonaje(puntaje).then(personaje => {
@@ -173,47 +199,38 @@ const mostrarResultados = (puntaje, preguntasIncorrectas, nombre, edad, intentos
                 Si fueras un personaje de Rick & Morty, serías ${personaje.name}.
                 <img src="${personaje.image}" alt="${personaje.name}">
             `;
-            document.getElementById("personaje").innerHTML = personajeInfo; // Muestra la info del personaje
+            personajeContainer.innerHTML = personajeInfo; // Muestra la info del personaje
         }
     });
-
-    const intentarDeNuevoContainer = document.getElementById("intentarDeNuevo");
-    intentarDeNuevoContainer.innerHTML = ""; // Limpia cualquier contenido previo
-
-    // Si el jugador existe, actualizamos sus intentos y puntaje, si no, creamos uno nuevo
-    let jugadorExistente = jugadores.find(jugador => jugador.nombre === nombre && jugador.edad === edad);
-
-    if (jugadorExistente) {
-        jugadorExistente.intentos = intentos; // Actualiza los intentos del jugador existente
-        jugadorExistente.puntaje = puntaje; // Actualiza el puntaje
-    } else {
-        const nuevoJugador = new Jugador(nombre, edad, intentos, puntaje);
-        jugadores.push(nuevoJugador); // Agrega el nuevo jugador al array de jugadores
-    }
-
-    localStorage.setItem('jugadores', JSON.stringify(jugadores)); // Guarda los jugadores en localStorage
 
     // Si el puntaje es menor a 10 te da la opción (botón) de intentar de nuevo
     if (puntaje < 10) {
         const retryButton = document.createElement("button");
         retryButton.innerText = "Intentar de Nuevo"; // Botón intentar de nuevo
-        retryButton.addEventListener("click", iniciarQuiz.bind(null, nombre, edad)); // Asigna la función quiz al botón
+        retryButton.addEventListener("click", function () {
+            // Limpia el formulario y el contenedor de preguntas antes de reiniciar el cuestionario
+            document.getElementById("preguntas").innerHTML = ""; // Limpia el div de preguntas
+            resultadoContainer.innerText = ""; // Limpia el resultado
+            personajeContainer.innerHTML = ""; // Limpia el personaje
+            intentarDeNuevoContainer.innerHTML = ""; // Limpia el botón de "Intentar de nuevo"
+            iniciarQuiz(nombre, edad); // Reinicia el cuestionario
+        });
 
         intentarDeNuevoContainer.appendChild(retryButton); // Agrega el botón al contenedor
     }
 
-    mostrarJugadoresOrdenados(); // Muestra la lista de mejores jugadores
+    // Actualiza el ranking de jugadores
+    mostrarJugadoresOrdenados();
 };
 
-
-/// Evento para procesar la información enviada a través del formulario
+// Agrega evento de escucha al formulario de jugador
 document.getElementById("formularioJugador").addEventListener("submit", function (event) {
-    event.preventDefault(); // Evita que el formulario de envíe de manera tradicional
+    event.preventDefault(); // Evita que el formulario se envíe de manera tradicional y recargue la página
 
-    const nombre = document.getElementById("nombre").value.trim(); // Obtiene el nombre
-    const edad = parseInt(document.getElementById("edad").value.trim(), 10); // Convierte la edad a número
+    const nombre = document.getElementById("nombre").value.trim();
+    const edad = parseInt(document.getElementById("edad").value.trim(), 10);
 
-    // Verifica que el nombre tenga al menos 3 letras
+    // Validaciones del nombre y la edad
     if (nombre.length < 3) {
         Swal.fire({
             imageUrl: 'assets/images.jpeg',
@@ -228,7 +245,6 @@ document.getElementById("formularioJugador").addEventListener("submit", function
         return;
     }
 
-    // Verifica que la edad sea mayor a 0 y que sea un número entero
     if (isNaN(edad) || edad <= 0) {
         Swal.fire({
             imageUrl: 'assets/michaelScott.jpg',
@@ -243,6 +259,7 @@ document.getElementById("formularioJugador").addEventListener("submit", function
         return;
     }
 
+    // Si todo es correcto, muestra la bienvenida y empieza el cuestionario
     Swal.fire({
         imageUrl: 'assets/diego.jpg',
         imageWidth: 300,
@@ -253,8 +270,6 @@ document.getElementById("formularioJugador").addEventListener("submit", function
         color: '#FFFFFF',
         confirmButtonColor: '#FFA500',
     }).then(() => {
-        iniciarQuiz(nombre, edad); // Llama a la función iniciarQuiz después de la bienvenida
+        iniciarQuiz(nombre, edad); // Inicia el cuestionario
     });
 });
-
-
